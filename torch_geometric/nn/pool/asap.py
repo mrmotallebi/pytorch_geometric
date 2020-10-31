@@ -38,11 +38,12 @@ class ASAPooling(torch.nn.Module):
             graph neural network layer.
     """
     def __init__(self, in_channels, ratio=0.5, GNN=None, dropout=0,
-                 negative_slope=0.2, add_self_loops=False, **kwargs):
+                 negative_slope=0.2, add_self_loops=False, k=None, **kwargs):
         super(ASAPooling, self).__init__()
 
         self.in_channels = in_channels
         self.ratio = ratio
+        self.k = k
         self.negative_slope = negative_slope
         self.dropout = dropout
         self.GNN = GNN
@@ -95,7 +96,7 @@ class ASAPooling(torch.nn.Module):
 
         # Cluster selection.
         fitness = self.gnn_score(x, edge_index).sigmoid().view(-1)
-        perm = topk(fitness, self.ratio, batch)
+        perm = topk(fitness, self.ratio, batch, k=self.k)
         x = x[perm] * fitness[perm].view(-1, 1)
         batch = batch[perm]
 

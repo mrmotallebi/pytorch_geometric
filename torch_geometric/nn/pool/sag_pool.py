@@ -64,11 +64,12 @@ class SAGPooling(torch.nn.Module):
             neural network layer.
     """
     def __init__(self, in_channels, ratio=0.5, GNN=GraphConv, min_score=None,
-                 multiplier=1, nonlinearity=torch.tanh, **kwargs):
+                 multiplier=1, nonlinearity=torch.tanh, k=None, **kwargs):
         super(SAGPooling, self).__init__()
 
         self.in_channels = in_channels
         self.ratio = ratio
+        self.k = k
         self.gnn = GNN(in_channels, 1, **kwargs)
         self.min_score = min_score
         self.multiplier = multiplier
@@ -93,7 +94,7 @@ class SAGPooling(torch.nn.Module):
         else:
             score = softmax(score, batch)
 
-        perm = topk(score, self.ratio, batch, self.min_score)
+        perm = topk(score, self.ratio, batch, self.min_score, k=self.k)
         x = x[perm] * score[perm].view(-1, 1)
         x = self.multiplier * x if self.multiplier != 1 else x
 
